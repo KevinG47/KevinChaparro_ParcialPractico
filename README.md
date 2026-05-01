@@ -1,105 +1,98 @@
-# 🏦 Detección de Fraude Bancario — Parcial Práctico ML 2026-I
+# Detección de Fraude Bancario — Parcial Práctico ML 2026-I
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![PySpark](https://img.shields.io/badge/PySpark-3.5.0-orange)
 ![LightGBM](https://img.shields.io/badge/LightGBM-4.3.0-green)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
-![Universidad](https://img.shields.io/badge/Universidad-Santo%20Tomás-red)
 
 **Estudiante:** Kevin Leonardo Chaparro Reyes  
-**Semilla personal:** `2948`  
+**Semilla:** `2948`  
 **Modelo asignado:** LightGBM (scikit-learn)  
 **Curso:** Machine Learning con PySpark y Docker — 2026-I  
 
 ---
 
-## 📋 Descripción del Problema
+## Sobre el proyecto
 
-Una entidad bancaria europea registra millones de transacciones diarias. El dataset presenta un desbalanceo extremo: solo el **0.173% de las transacciones son fraudulentas** (344 de 199,364). El objetivo es construir un sistema automatizado que detecte fraudes minimizando los falsos negativos sin generar demasiadas falsas alarmas.
+Un banco europeo necesita detectar transacciones fraudulentas de forma automática. El reto principal es que los fraudes son extremadamente raros: apenas el 0.17% del dataset (344 de 199,364 transacciones). Se entrenaron 3 modelos distintos y se seleccionó el que mejor equilibra la detección de fraudes reales con la minimización de falsas alarmas.
 
 ---
 
-## 📁 Estructura del Repositorio
-
+## Estructura del repositorio
 KevinChaparro_ParcialPractico/
 ├── notebooks/
-│   └── parcial_Kevin.ipynb       ← Notebook principal
+│   └── parcial_Kevin.ipynb
 ├── docker/
-│   ├── Dockerfile                ← Imagen con todas las dependencias
-│   └── docker-compose.yml        ← Configuración del entorno
-├── datos/                        ← NO incluido en el repo (ver instrucciones)
+│   ├── Dockerfile
+│   └── docker-compose.yml
+├── datos/                        ← no incluido (ver instrucciones)
 │   ├── train.csv
 │   ├── test.csv
 │   └── sample_submission.csv
-├── submission.csv                ← Predicciones del mejor modelo
-├── reporte.pdf                   ← Reporte de 1 página
+├── submission.csv
+├── reporte_parcial_ML.pdf
 └── README.md
 ---
 
-## 🐳 Instrucciones para Ejecutar
+## Cómo ejecutarlo
 
-### Prerrequisitos
-- Docker Desktop instalado y corriendo
-- Git instalado
+**Requisitos:** Docker Desktop y Git instalados.
 
-### Pasos
-
-**1. Clonar el repositorio**
+**1.** Clonar el repositorio:
 ```bash
 git clone https://github.com/KevinG47/KevinChaparro_ParcialPractico.git
 cd KevinChaparro_ParcialPractico
 ```
 
-**2. Agregar los datos**  
-Copia los archivos `train.csv`, `test.csv` y `sample_submission.csv` dentro de la carpeta `datos/`.
+**2.** Colocar los archivos de datos (`train.csv`, `test.csv`, `sample_submission.csv`) dentro de la carpeta `datos/`.
 
-**3. Levantar el contenedor**
+**3.** Levantar el contenedor:
 ```bash
 cd docker
 docker-compose up -d --build
 ```
 
-**4. Abrir Jupyter Lab**  
-Abre tu navegador en: [http://localhost:8888](http://localhost:8888)  
-Token: `ml2026`
+**4.** Abrir Jupyter en el navegador: [http://localhost:8888](http://localhost:8888) — Token: `ml2026`
 
-**5. Ejecutar el notebook**  
-Abre `notebooks/parcial_Kevin.ipynb` y ejecuta **Kernel → Restart & Run All**
+**5.** Abrir `notebooks/parcial_Kevin.ipynb` y ejecutar Kernel → Restart & Run All.
 
 ---
 
-## 🤖 Modelos Implementados
+## Resultados
 
-| # | Modelo | Framework | F1 (clase fraude) | AUC-ROC |
-|---|--------|-----------|-------------------|---------|
-| 1 | Logistic Regression | PySpark MLlib | 0.2351 | 0.9909 |
-| 2 | Gradient Boosted Trees | PySpark MLlib | 0.3158 | 0.9865 |
-| 3 | **LightGBM + SMOTE** ⭐ | scikit-learn | **0.8769** | **0.9855** |
+Se compararon 3 modelos, todos entrenados con SMOTE para manejar el desbalanceo extremo y con threshold tuning para optimizar el umbral de decisión:
 
-> ⭐ Modelo seleccionado para submission
+| Modelo | Framework | F1 (fraude) | AUC-ROC | Umbral |
+|--------|-----------|-------------|---------|--------|
+| Logistic Regression | PySpark MLlib | 0.7451 | 0.9847 | 0.88 |
+| Gradient Boosted Trees | PySpark MLlib | 0.8028 | 0.9674 | 0.89 |
+| **LightGBM (seleccionado)** | scikit-learn | **0.8992** | **0.9858** | **0.83** |
 
----
-
-## 🔑 Técnicas Clave
-
-- **SMOTE** — Balanceo de clases generando fraudes sintéticos (275 → 159,216)
-- **Threshold tuning** — Umbral óptimo de 0.76 en lugar del default 0.5
-- **Regularización L1/L2** — `reg_alpha=0.1`, `reg_lambda=0.1`
-- **train_test_split con stratify** — Split determinista y proporcional
+El modelo final genera solo 2 falsas alarmas y detecta el 84% de los fraudes reales.
 
 ---
 
-## 📊 Resultados Finales
+## Qué técnicas se usaron
 
-- **Semilla:** 2948  
-- **Train:** 159,491 filas | 275 fraudes  
-- **Validation:** 39,873 filas | 69 fraudes  
-- **F1 modelo final (LightGBM):** `0.8769`  
-- **Fraudes predichos en test:** 72  
+- **SMOTE** para balancear las clases (de 275 fraudes a 159,216 por clase)
+- **GridSearch** evaluando 64 combinaciones de hiperparámetros
+- **Threshold tuning** para encontrar el umbral óptimo de cada modelo
+- **Regularización L1/L2** para evitar sobreajuste sobre datos sintéticos
+- **train_test_split con stratify** para un split determinista y reproducible
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Datos del parcial
+
+- **Semilla:** 2948
+- **Train:** 159,491 filas — 275 fraudes
+- **Validation:** 39,873 filas — 69 fraudes
+- **F1 modelo final:** 0.8992
+- **Fraudes predichos en test:** 69
+
+---
+
+## Tecnologías
 
 - Python 3.11
 - PySpark 3.5.0
